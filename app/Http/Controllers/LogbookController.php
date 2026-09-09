@@ -4,10 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Models\Logbook;
 use App\Models\Magang;
+use App\Models\Task;
 use App\Services\TaskProgressService;
 use Carbon\Carbon;
+use Carbon\CarbonInterface;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
 class LogbookController extends Controller
@@ -30,8 +34,8 @@ class LogbookController extends Controller
         $lastDate = $magang->logbooks()->max('tanggal');
         $defaultDate = $lastDate ? Carbon::parse($lastDate)->addDay() : $magang->tanggal_mulai;
 
-        $tasks = $magang->tasks()->orderBy('nama_kegiatan')->get();
         $selectedTaskId = $request->integer('task_id') ?: null;
+        $tasks = $this->tasksForDate($magang, $defaultDate, $selectedTaskId ? [$selectedTaskId] : []);
 
         return view('logbook.create', compact('magang', 'defaultDate', 'tasks', 'selectedTaskId'));
     }
@@ -41,6 +45,8 @@ class LogbookController extends Controller
         $validated = $this->validated($request, $magang);
 
         $task = $magang->tasks()->findOrFail($validated['task_id']);
+
+        $this->assertTaskActiveOnTanggal($task, $validated['tanggal']);
 
         $validated['magang_id'] = $magang->id;
         $validated['ttd_confirmed'] = $request->boolean('ttd_confirmed');
@@ -66,7 +72,7 @@ class LogbookController extends Controller
     public function edit(Logbook $logbook)
     {
         $magang = $logbook->magang;
-        $tasks = $magang->tasks()->orderBy('nama_kegiatan')->get();
+        $tasks = $this->tasksForDate($magang, $logbook->tanggal, [$logbook->task_id]);
 
         return view('logbook.edit', compact('logbook', 'magang', 'tasks'));
     }
@@ -78,6 +84,9 @@ class LogbookController extends Controller
         $validated['ttd_confirmed'] = $request->boolean('ttd_confirmed');
 
         $this->preventTaskRegression($request, $logbook, $validated);
+
+        $task = $logbook->magang->tasks()->findOrFail($validated['task_id']);
+        $this->assertTaskActiveOnTanggal($task, $validated['tanggal']);
 
         $logbook->update($validated);
 
@@ -112,6 +121,47 @@ class LogbookController extends Controller
             'kendala' => ['nullable', 'string'],
             'ttd_confirmed' => ['nullable', 'in:0,1'],
         ]);
+    }
+
+    /**
+     * Kumpulan task yang bisa dipilih pada Input Logbook untuk satu tanggal:
+     * task yang time schedule-nya aktif pada tanggal tsb + task legacy tanpa jadwal.
+     */
+    protected function tasksForDate(Magang $magang, CarbonInterface $tanggal, array $extraTaskIds = []): Collection
+    {
+        return $magang->tasks()
+            ->forLogbookDate($tanggal->toDateString())
+            ->when($extraTaskIds, fn ($q) => $q->orWhereIn('id', $extraTaskIds))
+            ->with('timeSchedule')
+            ->orderBy('nama_kegiatan')
+            ->get();
+    }
+
+    /**
+     * Task yang berasal dari time schedule wajib aktif pada tanggal logbook.
+     * Task legacy (tanpa jadwal) tetap diterima demi kompatibilitas.
+     */
+    protected function assertTaskActiveOnTanggal(Task $task, string $tanggal): void
+    {
+        $schedule = $task->timeSchedule;
+
+        if (! $schedule) {
+            return;
+        }
+
+        $tanggal = Carbon::parse($tanggal);
+
+        if ($schedule->tanggal_mulai->lte($tanggal) && $schedule->tanggal_selesai->gte($tanggal)) {
+            return;
+        }
+
+        $validator = Validator::make([], [
+            'task_id' => ['required', Rule::in([0])],
+        ], [
+            'task_id.in' => 'Kegiatan "'.$task->nama_kegiatan.'" tidak aktif pada tanggal '.$tanggal->format('d/m/Y').' (jadwal: '.$schedule->tanggal_mulai->format('d/m/Y').' s/d '.$schedule->tanggal_selesai->format('d/m/Y').').',
+        ]);
+
+        throw new ValidationException($validator);
     }
 
     /**

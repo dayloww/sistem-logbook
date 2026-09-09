@@ -76,6 +76,11 @@ class Magang extends Model
         return $this->hasMany(WeeklyProgress::class);
     }
 
+    public function timeSchedules(): HasMany
+    {
+        return $this->hasMany(TimeSchedule::class);
+    }
+
     public function jumlahMinggu(): int
     {
         return $this->tanggal_mulai->diffInWeeks($this->tanggal_selesai) + 1;

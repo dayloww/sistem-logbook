@@ -48,6 +48,15 @@ class DashboardController extends Controller
 
         $taskProgress = $selected ? app(TaskProgressService::class)->overview($selected) : null;
 
+        $upcomingSchedules = $selected
+            ? $selected->timeSchedules()
+                ->with('task')
+                ->whereDate('tanggal_selesai', '>=', today())
+                ->orderBy('tanggal_mulai')
+                ->take(3)
+                ->get()
+            : collect();
+
         return view('dashboard.index', compact(
             'stats',
             'recentPresensi',
@@ -56,7 +65,8 @@ class DashboardController extends Controller
             'magangList',
             'selected',
             'progress',
-            'taskProgress'
+            'taskProgress',
+            'upcomingSchedules'
         ));
     }
 }

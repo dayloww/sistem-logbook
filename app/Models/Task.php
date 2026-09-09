@@ -3,10 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 #[Fillable([
     'magang_id',
@@ -42,6 +44,19 @@ class Task extends Model
     public function logbooks(): HasMany
     {
         return $this->hasMany(Logbook::class);
+    }
+
+    public function timeSchedule(): HasOne
+    {
+        return $this->hasOne(TimeSchedule::class);
+    }
+
+    public function scopeForLogbookDate(Builder $query, string $tanggal): Builder
+    {
+        return $query->where(function (Builder $q) use ($tanggal) {
+            $q->whereHas('timeSchedule', fn ($schedule) => $schedule->activeOn($tanggal))
+                ->orWhereDoesntHave('timeSchedule');
+        });
     }
 
     public function getStatusLabelAttribute(): string

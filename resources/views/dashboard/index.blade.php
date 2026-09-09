@@ -97,6 +97,44 @@
     </div>
 </div>
 
+{{-- TIME SCHEDULE TERDEKAT --}}
+@if ($selected && $upcomingSchedules && $upcomingSchedules->isNotEmpty())
+<div class="table-container" style="margin-bottom:20px;">
+    <div class="card-header">
+        <div>
+            <div class="card-title">Time Schedule Terdekat</div>
+            <div style="font-size:12px; color:#94A3B8; margin-top:2px;">{{ $selected->mahasiswa->nama }} · Kegiatan terjadwal aktif / berikutnya</div>
+        </div>
+        <a href="{{ route('magang.time-schedule.index', $selected) }}" class="btn btn-ghost btn-sm" style="font-size:12px;">
+            Lihat semua →
+        </a>
+    </div>
+    <div>
+        @foreach ($upcomingSchedules as $ts)
+            <a href="{{ route('magang.time-schedule.show', [$selected, $ts]) }}"
+               style="display:flex; align-items:center; justify-content:space-between; padding:13px 20px; text-decoration:none; transition: background 120ms;"
+               onmouseover="this.style.background='#F8FAFC'" onmouseout="this.style.background='transparent'">
+                <div style="display:flex; align-items:center; gap:12px; min-width:0;">
+                    <div style="width:34px; height:34px; border-radius:50%; background:#FEF3C7; color:#D97706; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                    </div>
+                    <div style="min-width:0;">
+                        <div style="font-size:13.5px; font-weight:600; color:#0F172A; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ $ts->kegiatan }}</div>
+                        <div style="font-size:12px; color:#64748B;">{{ $ts->tanggal_mulai->format('d M') }} – {{ $ts->tanggal_selesai->format('d M Y') }}</div>
+                    </div>
+                </div>
+                <div style="text-align:right; flex-shrink:0; margin-left:12px;">
+                    <span class="badge {{ $ts->status_badge }}">{{ $ts->status_label }}</span>
+                </div>
+            </a>
+            @if (!$loop->last)
+                <div style="height:1px; background:#F1F5F9; margin:0 20px;"></div>
+            @endif
+        @endforeach
+    </div>
+</div>
+@endif
+
 {{-- BOTTOM SECTION --}}
 <div style="display:grid; grid-template-columns: 2fr 1fr; gap:20px; margin-bottom:20px;">
 

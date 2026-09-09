@@ -25,18 +25,20 @@
         <div style="display:flex; flex-direction:column; gap:18px;">
             <div>
                 <label class="form-label">Tanggal <span class="required">*</span></label>
-                <input type="date" name="tanggal" value="{{ old('tanggal', $logbook->tanggal->format('Y-m-d')) }}" required
+                <input type="date" name="tanggal" id="logbook-tanggal" value="{{ old('tanggal', $logbook->tanggal->format('Y-m-d')) }}" required
                     class="form-input {{ $errors->has('tanggal') ? 'error' : '' }}">
                 @error('tanggal') <div class="form-error">{{ $message }}</div> @enderror
             </div>
 
             <div>
                 <label class="form-label">Kegiatan / Task <span class="required">*</span></label>
-                <select name="task_id" required
-                    class="form-select {{ $errors->has('task_id') ? 'error' : '' }}" style="height:40px;">
+                <select name="task_id" id="logbook-task" required
+                    class="form-select {{ $errors->has('task_id') ? 'error' : '' }}" style="height:40px;"
+                    data-url="{{ route('magang.time-schedule.available', $logbook->magang) }}">
                     <option value="">-- Pilih Kegiatan --</option>
                     @foreach ($tasks as $task)
-                        <option value="{{ $task->id }}" {{ old('task_id', $logbook->task_id) == $task->id ? 'selected' : '' }}>
+                        <option value="{{ $task->id }}" {{ old('task_id', $logbook->task_id) == $task->id ? 'selected' : '' }}
+                            data-target="{{ $task->timeSchedule?->target ?? '' }}">
                             {{ $task->nama_kegiatan }} ({{ $task->progress }}%)
                         </option>
                     @endforeach
@@ -55,6 +57,7 @@
                 <label class="form-label">Target</label>
                 <input type="text" name="target" value="{{ old('target', $logbook->target) }}"
                     class="form-input" placeholder="Apa yang ingin dicapai">
+                <div class="form-hint">Terisi otomatis dari time schedule (tetap bisa diedit).</div>
             </div>
 
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
@@ -90,3 +93,45 @@
     </form>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const tanggal = document.getElementById('logbook-tanggal');
+        const select = document.getElementById('logbook-task');
+        const target = document.querySelector('input[name="target"]');
+
+        if (!tanggal || !select || !target) return;
+
+        function syncTarget(force) {
+            const opt = select.options[select.selectedIndex];
+            const t = opt && opt.dataset.target;
+            if (t && (force || target.value === '')) {
+                target.value = t;
+            }
+        }
+
+        async function reloadTasks() {
+            if (!tanggal.value) return;
+            const res = await fetch(select.dataset.url + '?tanggal=' + encodeURIComponent(tanggal.value));
+            if (!res.ok) return;
+            const items = await res.json();
+            const current = select.value;
+            select.innerHTML = '<option value="">-- Pilih Kegiatan --</option>';
+            items.forEach(item => {
+                const opt = document.createElement('option');
+                opt.value = item.task_id;
+                opt.textContent = item.nama_kegiatan + ' (' + (item.progress ?? 0) + '%)';
+                if (item.target) opt.dataset.target = item.target;
+                select.appendChild(opt);
+            });
+            select.value = current;
+            syncTarget(false);
+        }
+
+        tanggal.addEventListener('change', reloadTasks);
+        select.addEventListener('change', () => syncTarget(true));
+        syncTarget(false);
+    });
+</script>
+@endpush
