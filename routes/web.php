@@ -10,8 +10,6 @@ use App\Http\Controllers\MahasiswaController;
 use App\Http\Controllers\PresensiController;
 use App\Http\Controllers\PreviewController;
 use App\Http\Controllers\ProgressController;
-use App\Http\Controllers\TaskController;
-use App\Http\Controllers\TimeScheduleController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
@@ -30,23 +28,6 @@ Route::prefix('magang/{magang}')->name('magang.')->group(function () {
     Route::get('logbook', [LogbookController::class, 'index'])->name('logbook.index');
     Route::get('logbook/create', [LogbookController::class, 'create'])->name('logbook.create');
     Route::post('logbook', [LogbookController::class, 'store'])->name('logbook.store');
-
-    Route::get('tasks', [TaskController::class, 'index'])->name('task.index');
-    Route::get('tasks/create', [TaskController::class, 'create'])->name('task.create');
-    Route::post('tasks', [TaskController::class, 'store'])->name('task.store');
-    Route::get('tasks/{task}', [TaskController::class, 'show'])->name('task.show');
-    Route::get('tasks/{task}/edit', [TaskController::class, 'edit'])->name('task.edit');
-    Route::put('tasks/{task}', [TaskController::class, 'update'])->name('task.update');
-    Route::delete('tasks/{task}', [TaskController::class, 'destroy'])->name('task.destroy');
-
-    Route::get('time-schedule', [TimeScheduleController::class, 'index'])->name('time-schedule.index');
-    Route::get('time-schedule/create', [TimeScheduleController::class, 'create'])->name('time-schedule.create');
-    Route::post('time-schedule', [TimeScheduleController::class, 'store'])->name('time-schedule.store');
-    Route::get('time-schedule/available', [TimeScheduleController::class, 'available'])->name('time-schedule.available');
-    Route::get('time-schedule/{timeSchedule}', [TimeScheduleController::class, 'show'])->name('time-schedule.show');
-    Route::get('time-schedule/{timeSchedule}/edit', [TimeScheduleController::class, 'edit'])->name('time-schedule.edit');
-    Route::put('time-schedule/{timeSchedule}', [TimeScheduleController::class, 'update'])->name('time-schedule.update');
-    Route::delete('time-schedule/{timeSchedule}', [TimeScheduleController::class, 'destroy'])->name('time-schedule.destroy');
 
     Route::get('catatan-mingguan', [CatatanMingguanController::class, 'index'])->name('catatan.index');
     Route::post('catatan-mingguan', [CatatanMingguanController::class, 'store'])->name('catatan.store');

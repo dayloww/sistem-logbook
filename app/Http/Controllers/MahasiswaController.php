@@ -24,11 +24,24 @@ class MahasiswaController extends Controller
         }
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        $mahasiswa = Mahasiswa::withCount('magang')->latest()->paginate(10);
+        $search = trim((string) $request->query('q'));
 
-        return view('mahasiswa.index', compact('mahasiswa'));
+        $mahasiswa = Mahasiswa::withCount('magang')
+            ->when($search !== '', function ($query) use ($search) {
+                $query->where(function ($query) use ($search) {
+                    $query->where('nama', 'like', "%{$search}%")
+                        ->orWhere('nim', 'like', "%{$search}%")
+                        ->orWhere('program_studi', 'like', "%{$search}%")
+                        ->orWhere('perguruan_tinggi', 'like', "%{$search}%");
+                });
+            })
+            ->latest()
+            ->paginate(10)
+            ->withQueryString();
+
+        return view('mahasiswa.index', compact('mahasiswa', 'search'));
     }
 
     public function create()

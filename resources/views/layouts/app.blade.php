@@ -121,13 +121,14 @@
 
         {{-- Navigation --}}
         <nav class="sidebar-nav" aria-label="Menu navigasi">
+            <div class="sidebar-section">Overview</div>
             <a href="{{ route('dashboard') }}"
                class="sidebar-link {{ request()->routeIs('dashboard') ? 'active' : '' }}"
                aria-current="{{ request()->routeIs('dashboard') ? 'page' : 'false' }}">
                 <svg class="sidebar-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0a1 1 0 01-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 01-1 1h-2z"/>
                 </svg>
-                Dashboard
+                <span class="sidebar-link-label">Dashboard</span>
             </a>
 
             <a href="{{ route('progress') }}"
@@ -136,10 +137,10 @@
                 <svg class="sidebar-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 8v8m-4-5v5m-4-2v2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2z"/>
                 </svg>
-                Progress Magang
+                <span class="sidebar-link-label">Progress Magang</span>
             </a>
 
-            <div class="sidebar-section">Data Master</div>
+            <div class="sidebar-section">Data</div>
 
             <a href="{{ route('mahasiswa.index') }}"
                class="sidebar-link {{ request()->routeIs('mahasiswa.*') ? 'active' : '' }}"
@@ -147,7 +148,7 @@
                 <svg class="sidebar-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
                 </svg>
-                Data Mahasiswa
+                <span class="sidebar-link-label">Data Mahasiswa</span>
             </a>
 
             <a href="{{ route('magang.index') }}"
@@ -156,10 +157,10 @@
                 <svg class="sidebar-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
                 </svg>
-                Data Magang
+                <span class="sidebar-link-label">Data Magang</span>
             </a>
 
-            <div class="sidebar-section">Pengaturan</div>
+            <div class="sidebar-section">System</div>
 
             <a href="{{ route('kop-surat.index') }}"
                class="sidebar-link {{ request()->routeIs('kop-surat.*') ? 'active' : '' }}"
@@ -167,12 +168,13 @@
                 <svg class="sidebar-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                 </svg>
-                Kop Surat
+                <span class="sidebar-link-label">Kop Surat</span>
             </a>
         </nav>
 
         <div class="sidebar-footer">
-            Sistem Logbook Magang v1.0
+            <span class="sidebar-footer-mark">LM</span>
+            <span><strong>Logbook Magang</strong><small>Sistem Informasi</small></span>
         </div>
     </aside>
 
@@ -185,12 +187,23 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
                 </svg>
             </button>
+            <button class="sidebar-collapse-btn" id="sidebar-collapse-btn" type="button" onclick="toggleDesktopSidebar()" aria-label="Ringkas sidebar" aria-expanded="true">
+                <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m15 18-6-6 6-6"/>
+                </svg>
+            </button>
 
             <div class="topbar-title">
                 @yield('page-title', 'Logbook Magang')
             </div>
 
             <div class="topbar-actions">
+                <time class="topbar-date" datetime="{{ now()->toDateString() }}">
+                    <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    </svg>
+                    {{ now()->translatedFormat('d M Y') }}
+                </time>
                 <div class="topbar-user" title="Administrator">
                     <div class="topbar-avatar" aria-hidden="true">A</div>
                     <span style="font-size:13px; font-weight:500; color:#374151; display:none;" class="hidden sm:block">Admin</span>
@@ -209,6 +222,25 @@
 
 <script>
     // ---- SIDEBAR DRAWER ----
+    function toggleDesktopSidebar() {
+        if (window.innerWidth < 1024) return;
+
+        const collapsed = document.body.classList.toggle('sidebar-collapsed');
+        const button = document.getElementById('sidebar-collapse-btn');
+        button.setAttribute('aria-expanded', String(!collapsed));
+        button.setAttribute('aria-label', collapsed ? 'Luaskan sidebar' : 'Ringkas sidebar');
+        localStorage.setItem('logbook-sidebar-collapsed', collapsed ? '1' : '0');
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        if (window.innerWidth >= 1024 && localStorage.getItem('logbook-sidebar-collapsed') === '1') {
+            document.body.classList.add('sidebar-collapsed');
+            const button = document.getElementById('sidebar-collapse-btn');
+            button.setAttribute('aria-expanded', 'false');
+            button.setAttribute('aria-label', 'Luaskan sidebar');
+        }
+    });
+
     function toggleSidebar() {
         const sidebar = document.getElementById('sidebar');
         const overlay = document.getElementById('sidebar-overlay');

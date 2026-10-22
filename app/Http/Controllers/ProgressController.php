@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Magang;
-use App\Services\TaskProgressService;
+use App\Services\LogbookProgressService;
 use Illuminate\Http\Request;
 
 class ProgressController extends Controller
@@ -17,8 +17,11 @@ class ProgressController extends Controller
         $selected = $magangList->firstWhere('id', $request->integer('magang'))
             ?? $magangList->first();
 
-        $progress = $selected ? app(TaskProgressService::class)->overview($selected) : null;
+        $progress = $selected ? app(LogbookProgressService::class)->for($selected) : null;
+        $recentActivities = $selected
+            ? $selected->logbooks()->latest('tanggal')->take(6)->get()
+            : collect();
 
-        return view('progress.index', compact('magangList', 'selected', 'progress'));
+        return view('progress.index', compact('magangList', 'selected', 'progress', 'recentActivities'));
     }
 }

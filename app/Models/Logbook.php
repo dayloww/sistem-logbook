@@ -9,7 +9,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 #[Fillable([
     'magang_id',
-    'task_id',
     'tanggal',
     'deskripsi_tugas',
     'target',
@@ -33,11 +32,6 @@ class Logbook extends Model
     public function magang(): BelongsTo
     {
         return $this->belongsTo(Magang::class);
-    }
-
-    public function task(): BelongsTo
-    {
-        return $this->belongsTo(Task::class);
     }
 
     public function mingguKe(): int

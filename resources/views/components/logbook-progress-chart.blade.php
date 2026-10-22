@@ -7,6 +7,9 @@
     $completed = $hasProgress ? $progress['completed_days'] : 0;
     $empty = ! $hasProgress || $completed === 0;
 
+    // Do not plot generated empty weeks: the chart should only show actual activity.
+    $series = array_values(array_filter($series, fn ($item) => $item['aktivitas'] > 0));
+    $empty = empty($series);
     $labels = array_map(fn ($s) => $s['minggu'], $series);
     $values = array_map(fn ($s) => $s['persen'], $series);
     $activities = array_map(fn ($s) => $s['aktivitas'], $series);

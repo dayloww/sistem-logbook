@@ -5,16 +5,30 @@ namespace App\Http\Controllers;
 use App\Models\KopSurat;
 use App\Models\Magang;
 use App\Models\Mahasiswa;
-use App\Services\TaskProgressService;
 use Illuminate\Http\Request;
 
 class MagangController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $magang = Magang::with('mahasiswa')->latest()->paginate(10);
+        $search = trim((string) $request->query('q'));
 
-        return view('magang.index', compact('magang'));
+        $magang = Magang::with('mahasiswa')
+            ->when($search !== '', function ($query) use ($search) {
+                $query->where(function ($query) use ($search) {
+                    $query->where('judul_topik', 'like', "%{$search}%")
+                        ->orWhere('instansi', 'like', "%{$search}%")
+                        ->orWhere('lokasi', 'like', "%{$search}%")
+                        ->orWhereHas('mahasiswa', fn ($mahasiswa) => $mahasiswa
+                            ->where('nama', 'like', "%{$search}%")
+                            ->orWhere('nim', 'like', "%{$search}%"));
+                });
+            })
+            ->latest()
+            ->paginate(10)
+            ->withQueryString();
+
+        return view('magang.index', compact('magang', 'search'));
     }
 
     public function create()
@@ -23,7 +37,7 @@ class MagangController extends Controller
         $mahasiswa = Mahasiswa::orderBy('nama')->get();
         $kopSurats = KopSurat::all();
 
-        return view('magang.create', compact('magang', 'mahasiswa', 'kopSurats'));
+        return view('magang.form', compact('magang', 'mahasiswa', 'kopSurats'));
     }
 
     public function store(Request $request)
@@ -58,7 +72,6 @@ class MagangController extends Controller
             'presensi' => fn ($q) => $q->orderBy('tanggal'),
             'logbooks' => fn ($q) => $q->orderBy('tanggal'),
             'catatanMingguan' => fn ($q) => $q->orderBy('minggu_ke'),
-            'tasks' => fn ($q) => $q->orderBy('nama_kegiatan'),
         ]);
         $presensiStats = [
             'total' => $magang->presensi->count(),
@@ -72,9 +85,7 @@ class MagangController extends Controller
 
         $jumlahMinggu = $magang->jumlahMinggu();
 
-        $taskProgress = app(TaskProgressService::class)->overview($magang);
-
-        return view('magang.show', compact('magang', 'presensiStats', 'logbooksStats', 'jumlahMinggu', 'taskProgress'));
+        return view('magang.show', compact('magang', 'presensiStats', 'logbooksStats', 'jumlahMinggu'));
     }
 
     public function edit(Magang $magang)
@@ -82,7 +93,7 @@ class MagangController extends Controller
         $mahasiswa = Mahasiswa::orderBy('nama')->get();
         $kopSurats = KopSurat::all();
 
-        return view('magang.edit', compact('magang', 'mahasiswa', 'kopSurats'));
+        return view('magang.form', compact('magang', 'mahasiswa', 'kopSurats'));
     }
 
     public function update(Request $request, Magang $magang)

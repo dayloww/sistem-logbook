@@ -390,60 +390,49 @@ class WordExportService
         return $slots;
     }
 
-    protected function addSignatureBlock(Section $section, array $columns, bool $addSpace = true, string $mengetahui = 'Mengetahui,'): void
+    protected function addSignatureBlock(Section $section, array $columns, bool $addSpace = true, string $mengetahui = 'Mengetahui'): void
     {
         if ($addSpace) {
-            $section->addTextBreak(2);
+            $section->addTextBreak(1);
         }
 
-        $section->addText($mengetahui, ['size' => 11], ['spaceAfter' => 200]);
+        $section->addText($mengetahui, ['size' => 11], ['alignment' => Jc::CENTER, 'spaceAfter' => 140]);
 
         $table = $section->addTable([
-            'alignment' => Jc::LEFT,
+            'alignment' => Jc::CENTER,
             'width' => 100,
             'unit' => TblWidth::PERCENT,
         ]);
 
-        $width = intdiv(10000, count($columns));
+        $width = intdiv(10000, max(count($columns), 1));
 
         $table->addRow();
-        $table->addCell($width)->addText('', ['size' => 11]);
-        $table->addCell($width)->addText($columns[0]['role'] ?? '', ['size' => 11], ['alignment' => Jc::CENTER]);
-        if (isset($columns[1])) {
-            $table->addCell($width)->addText($columns[1]['role'] ?? '', ['size' => 11], ['alignment' => Jc::CENTER]);
-        }
-        if (isset($columns[2])) {
-            $table->addCell($width)->addText($columns[2]['role'] ?? '', ['size' => 11], ['alignment' => Jc::CENTER]);
-        }
-        if (isset($columns[3])) {
-            $table->addCell($width)->addText($columns[3]['role'] ?? '', ['size' => 11], ['alignment' => Jc::CENTER]);
-        }
-
-        $table->addRow();
-        $blank = $table->addCell($width)->addTextRun();
-        foreach (range(1, 6) as $_) {
-            $blank->addTextBreak();
-        }
         foreach ($columns as $col) {
-            $cell = $table->addCell($width);
+            $table->addCell($width)->addText(
+                $col['role'] ?? '',
+                ['bold' => true, 'size' => 11],
+                ['alignment' => Jc::CENTER]
+            );
+        }
+
+        $table->addRow(round(Converter::cmToTwip(2.2)));
+        foreach ($columns as $col) {
+            $cell = $table->addCell($width, ['valign' => VerticalJc::CENTER]);
             if (! empty($col['ttd']) && file_exists($col['ttd'])) {
                 $run = $cell->addTextRun(['alignment' => Jc::CENTER]);
-                $run->addImage($col['ttd'], ['width' => round(Converter::cmToPoint(3))]);
+                $run->addImage($col['ttd'], ['width' => round(Converter::cmToPoint(2.5))]);
             } else {
-                $run = $cell->addTextRun(['alignment' => Jc::CENTER]);
-                foreach (range(1, 8) as $_) {
-                    $run->addTextBreak();
-                }
-                $run->addText('(', ['size' => 11]);
+                $cell->addText('', ['size' => 11]);
             }
         }
 
         $table->addRow();
-        $table->addCell($width)->addText('', ['size' => 11]);
         foreach ($columns as $col) {
+            $nameText = ! empty($col['name']) ? $col['name'] : '........................................';
+            $isUnderline = ! empty($col['name']);
             $table->addCell($width)->addText(
-                isset($col['name']) ? $col['name'] : '........................................',
-                ['size' => 11],
+                $nameText,
+                ['bold' => true, 'size' => 10.5, 'underline' => $isUnderline ? 'single' : 'none'],
                 ['alignment' => Jc::CENTER]
             );
         }
@@ -558,7 +547,7 @@ class WordExportService
 
             $tanggalCell = $table->addCell($widths[1], ['valign' => VerticalJc::CENTER]);
             $tanggalCell->addText(
-                $item ? $item->tanggal->translatedFormat('d/m/Y') : '',
+                $item ? $item->tanggal->translatedFormat('l, d/m/Y') : '',
                 ['size' => 8.5],
                 ['alignment' => Jc::CENTER]
             );
@@ -743,9 +732,9 @@ class WordExportService
         $this->addPresensiTable($section, $magang, $this->resolvedTtdPath($magang->mahasiswa));
 
         $this->addSignatureBlock($section, [
-            ['role' => 'Dosen Pembimbing I'],
-            ['role' => 'Dosen Pembimbing II'],
-            ['role' => 'Supervisor/Mentor'],
+            ['role' => 'Dosen Pembimbing I', 'name' => $magang->dosen_pembimbing_1],
+            ['role' => 'Dosen Pembimbing II', 'name' => $magang->dosen_pembimbing_2],
+            ['role' => 'Supervisor/Mentor', 'name' => $magang->supervisor],
         ], true, 'Mengetahui');
 
         $writer = IOFactory::createWriter($phpWord, 'Word2007');

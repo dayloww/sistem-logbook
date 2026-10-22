@@ -7,7 +7,7 @@
     <div class="page-header-inner">
         <div>
             <h1 class="page-title">Pengaturan Kop Surat</h1>
-            <p class="page-subtitle">Kelola kop kampus/program studi dan instansi/lokasi magang</p>
+            <p class="page-subtitle">Kelola kop kampus/program studi dan instansi mitra untuk tata letak dokumen resmi</p>
         </div>
         <a href="{{ route('kop-surat.create') }}" class="btn btn-primary">
             <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -18,10 +18,10 @@
     </div>
 </div>
 
-<div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(340px, 1fr)); gap:20px;">
+<div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(380px, 1fr)); gap:24px;">
     @forelse ($kopSurats as $k)
         <div class="card" style="display:flex; flex-direction:column; overflow:hidden;">
-            <div class="card-header" style="background:#F8FAFC;">
+            <div class="card-header" style="background:#F8FAFC; border-bottom:1px solid #E2E8F0;">
                 <span class="badge {{ $k->jenis === 'kampus' ? 'badge-info' : 'badge-amber' }}">
                     {{ $k->jenis === 'kampus' ? 'Kampus / Prodi' : 'Instansi Mitra' }}
                 </span>
@@ -35,20 +35,40 @@
                     </form>
                 </div>
             </div>
-            <div style="padding:20px; flex:1; display:flex; flex-direction:column; gap:12px;">
-                <div style="font-size:15px; font-weight:700; color:#0F172A; line-height:1.3;">
-                    {{ $k->nama_instansi }}
+            
+            {{-- DOCUMENT PREVIEW BOX --}}
+            <div style="padding:20px; background:#FFFFFF; flex:1; display:flex; flex-direction:column; gap:16px;">
+                <div style="border:1px solid #E2E8F0; border-radius:10px; padding:18px 16px; background:#F8FAFC; box-shadow:inset 0 1px 2px rgba(0,0,0,0.02);">
+                    <div style="font-size:10px; font-weight:800; color:#94A3B8; text-transform:uppercase; letter-spacing:0.08em; margin-bottom:12px;">PREVIEW KOP DOKUMEN</div>
+                    <div style="display:flex; align-items:center; gap:16px; border-bottom:2px solid #0F172A; padding-bottom:12px;">
+                        @if ($k->logo_path)
+                            <img src="{{ asset('storage/'.$k->logo_path) }}" alt="Logo"
+                                 style="height:48px; max-width:80px; object-fit:contain; flex-shrink:0;"
+                                 onerror="this.style.display='none';">
+                        @else
+                            <div style="width:44px; height:44px; border-radius:8px; background:#E2E8F0; display:flex; align-items:center; justify-content:center; color:#64748B; font-size:10px; font-weight:800; flex-shrink:0;">
+                                KOP
+                            </div>
+                        @endif
+                        <div style="min-width:0; flex:1; text-align:center;">
+                            <div style="font-size:13px; font-weight:800; color:#0F172A; text-transform:uppercase; line-height:1.2;">
+                                {{ $k->nama_instansi }}
+                            </div>
+                            @if ($k->alamat)
+                                <div style="font-size:10.5px; color:#475569; margin-top:3px; line-height:1.3;">
+                                    {{ $k->alamat }}
+                                </div>
+                            @endif
+                            @if ($k->telepon || $k->website)
+                                <div style="font-size:10px; color:#64748B; margin-top:2px;">
+                                    {{ implode(' · ', array_filter([$k->telepon ? 'Telp: '.$k->telepon : null, $k->website])) }}
+                                </div>
+                            @endif
+                        </div>
+                    </div>
                 </div>
 
-                @if ($k->logo_path)
-                    <div style="padding:10px; background:#F8FAFC; border:1px solid #E2E8F0; border-radius:8px; display:inline-flex; align-items:center; width:fit-content;">
-                        <img src="{{ asset('storage/'.$k->logo_path) }}" alt="Logo {{ $k->nama_instansi }}"
-                             style="height:48px; max-width:180px; object-fit:contain;"
-                             onerror="this.onerror=null; this.parentElement.innerHTML='<span style=\'font-size:11px; color:#94A3B8;\'>[Logo tidak ditemukan]</span>';">
-                    </div>
-                @endif
-
-                <div style="display:flex; flex-direction:column; gap:6px; font-size:13px; color:#64748B; margin-top:auto;">
+                <div style="display:flex; flex-direction:column; gap:6px; font-size:12.5px; color:#64748B; margin-top:auto;">
                     @if ($k->alamat)
                         <div style="display:flex; gap:8px; align-items:flex-start;">
                             <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="#94A3B8" style="flex-shrink:0; margin-top:2px;">
@@ -86,7 +106,7 @@
                     </svg>
                 </div>
                 <div class="empty-state-title">Belum ada data kop surat</div>
-                <div class="empty-state-desc">Tambahkan kop surat kampus atau instansi untuk keperluan dokumen resmi.</div>
+                <div class="empty-state-desc">Tambahkan kop surat kampus atau instansi mitra untuk tata letak cetak dokumen resmi.</div>
                 <a href="{{ route('kop-surat.create') }}" class="btn btn-primary">+ Tambah Kop Surat</a>
             </div>
         </div>

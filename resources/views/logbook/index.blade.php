@@ -62,7 +62,6 @@
                     <tr>
                         <th style="width:42px; text-align:center;">No</th>
                         <th style="white-space:nowrap;">Tanggal</th>
-                        <th>Kegiatan</th>
                         <th>Deskripsi Tugas</th>
                         <th>Target</th>
                         <th style="text-align:center; white-space:nowrap;">Capaian</th>
@@ -74,16 +73,7 @@
                     @foreach ($week['items'] as $i => $l)
                         <tr>
                             <td style="text-align:center; color:#94A3B8; font-size:12px;">{{ $i + 1 }}</td>
-                            <td style="white-space:nowrap; color:#374151; font-size:13px;">{{ $l->tanggal->format('d/m/Y') }}</td>
-                            <td style="max-width:160px;">
-                                @if ($l->task)
-                                    <a href="{{ route('magang.task.show', [$magang, $l->task]) }}" class="action-link action-link-view" style="font-size:12.5px;">
-                                        {{ $l->task->nama_kegiatan }}
-                                    </a>
-                                @else
-                                    <span style="color:#CBD5E1;">—</span>
-                                @endif
-                            </td>
+                            <td style="white-space:nowrap; color:#374151; font-size:13px;">{{ $l->tanggal->translatedFormat('l, d/m/Y') }}</td>
                             <td style="max-width:200px;">
                                 <div style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:180px;">{{ $l->deskripsi_tugas }}</div>
                             </td>
@@ -106,7 +96,7 @@
                             <td style="text-align:right; white-space:nowrap;">
                                 <a href="{{ route('logbook.edit', $l) }}" class="action-link action-link-edit" style="margin-right:12px;">Edit</a>
                                 <form action="{{ route('logbook.destroy', $l) }}" method="POST" class="inline"
-                                      onsubmit="event.preventDefault(); confirmDelete(this, 'Hapus entri logbook tanggal {{ $l->tanggal->format('d M Y') }}?')">
+                                      onsubmit="event.preventDefault(); confirmDelete(this, 'Hapus entri logbook tanggal {{ $l->tanggal->translatedFormat('l, d/m/Y') }}?')">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="action-link action-link-delete" style="background:none; border:none; padding:0; cursor:pointer;">Hapus</button>

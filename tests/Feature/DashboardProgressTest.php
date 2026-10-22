@@ -192,8 +192,7 @@ class DashboardProgressTest extends TestCase
 
         $this->get(route('dashboard'))
             ->assertOk()
-            ->assertSee('lg:grid-cols-3')
-            ->assertSee('lg:col-span-1')
-            ->assertSee('lg:col-span-2');
+            ->assertSee('analytics-layout')
+            ->assertSee('dashboard-bottom');
     }
 }

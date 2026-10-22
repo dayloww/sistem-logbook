@@ -20,7 +20,6 @@ class LogbookFactory extends Factory
     {
         return [
             'magang_id' => Magang::factory(),
-            'task_id' => null,
             'tanggal' => function (array $attributes) {
                 $magang = Magang::find($attributes['magang_id']);
 

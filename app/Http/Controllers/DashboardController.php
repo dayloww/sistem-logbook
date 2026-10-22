@@ -7,8 +7,9 @@ use App\Models\Magang;
 use App\Models\Mahasiswa;
 use App\Models\Presensi;
 use App\Services\LogbookProgressService;
-use App\Services\TaskProgressService;
+use App\Support\RomanNumeral;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 
 class DashboardController extends Controller
 {
@@ -46,16 +47,13 @@ class DashboardController extends Controller
 
         $progress = $selected ? app(LogbookProgressService::class)->for($selected) : null;
 
-        $taskProgress = $selected ? app(TaskProgressService::class)->overview($selected) : null;
+        $trend = $this->trendSeries($selected, $progress);
 
-        $upcomingSchedules = $selected
-            ? $selected->timeSchedules()
-                ->with('task')
-                ->whereDate('tanggal_selesai', '>=', today())
-                ->orderBy('tanggal_mulai')
-                ->take(3)
-                ->get()
-            : collect();
+        $displayStatus = $progress
+            ? ($progress['percent'] >= 100
+                ? ['key' => 'selesai', 'label' => 'Selesai']
+                : $progress['status'])
+            : ['key' => 'none', 'label' => 'Belum ada data'];
 
         return view('dashboard.index', compact(
             'stats',
@@ -65,8 +63,43 @@ class DashboardController extends Controller
             'magangList',
             'selected',
             'progress',
-            'taskProgress',
-            'upcomingSchedules'
+            'trend',
+            'displayStatus',
         ));
+    }
+
+    /**
+     * Tren kumulatif berbasis tanggal aktivitas logbook yang benar-benar ada.
+     * Tidak membuat titik data buatan untuk minggu/tanggal yang kosong.
+     */
+    protected function trendSeries(?Magang $magang, ?array $progress): array
+    {
+        if (! $magang || ! $progress) {
+            return [];
+        }
+
+        $targetDays = max($progress['target_days'], 1);
+        $cumulative = 0;
+
+        return Logbook::where('magang_id', $magang->id)
+            ->orderBy('tanggal')
+            ->get(['tanggal'])
+            ->pluck('tanggal')
+            ->map(fn ($date) => Carbon::parse($date)->startOfDay())
+            ->unique(fn (Carbon $date) => $date->toDateString())
+            ->values()
+            ->map(function (Carbon $date) use (&$cumulative, $targetDays, $magang) {
+                $cumulative++;
+
+                return [
+                    'tanggal' => $date->format('Y-m-d'),
+                    'label' => $date->translatedFormat('D, d/m'),
+                    'minggu' => 'Minggu '.RomanNumeral::convert($magang->mingguKe($date)),
+                    'persen' => min(100, (int) round($cumulative / $targetDays * 100)),
+                    'aktivitas' => $cumulative,
+                    'full' => $date->translatedFormat('l, d/m/Y'),
+                ];
+            })
+            ->all();
     }
 }

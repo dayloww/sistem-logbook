@@ -176,7 +176,7 @@
                     @php $item = $items[$i] ?? null; @endphp
                     <tr class="{{ $item ? '' : 'blank' }}">
                         <td class="no">{{ $no++ }}</td>
-                        <td class="tanggal">{{ $item ? $item->tanggal->format('d/m/Y') : '' }}</td>
+                        <td class="tanggal">{{ $item ? $item->tanggal->translatedFormat('l, d/m/Y') : '' }}</td>
                         <td class="deskripsi">{{ $item ? $item->deskripsi_tugas : '' }}</td>
                         <td class="target">{{ $item ? ($item->target ?? '') : '' }}</td>
                         <td class="persen">{{ $item ? $item->persentase_capaian.'%' : '' }}</td>
